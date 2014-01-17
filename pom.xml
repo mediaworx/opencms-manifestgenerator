@@ -12,9 +12,9 @@
 	<name>OpenCms Module Manifest Generator</name>
 	<description>Creates OpenCms module manifest files from a manifest stub and meta data files</description>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<dependencies>
 		<dependency>
