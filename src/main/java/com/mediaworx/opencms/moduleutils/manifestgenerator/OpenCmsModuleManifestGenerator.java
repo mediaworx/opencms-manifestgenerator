@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -199,6 +200,11 @@ public class OpenCmsModuleManifestGenerator {
 	private XmlHelper xmlHelper;
 
 	/**
+	 * module version to be used in the manifest, ignored if <code>null</code> or empty
+	 */
+	private String moduleVersion;
+
+	/**
 	 * Generates the manifest.xml for OpenCms modules from meta files (manifest_stub.xml and separate meta files for all
 	 * files and folders in the VFS).
 	 * @param manifestRoot  file representing the root folder of the manifest meta data (including manifest_stub.xml)
@@ -261,8 +267,15 @@ public class OpenCmsModuleManifestGenerator {
 			}
 		}
 
-		// write the finished manifest to the disk
+		// render the xml string
 		String manifestString = xmlHelper.getXmlStringFromDocument(manifest, CDATA_NODES);
+
+		// if a specific version is provided, replace the original version
+		if (StringUtils.isNotBlank(moduleVersion)) {
+			manifestString = manifestString.replaceFirst("<version>[^<]*</version>", "<version>" + moduleVersion + "</version>");
+		}
+
+		// write the manifest to the disk
 		try {
 			writeManifest(manifestPath, manifestString);
 		}
@@ -458,4 +471,12 @@ public class OpenCmsModuleManifestGenerator {
 		FileUtils.writeStringToFile(new File(manifestPath), manifestString);
 	}
 
+	/**
+	 * Allows to set a specific module version that is replacing the module version from the manifest stub.
+	 * @param moduleVersion the String to be used as the module version, if <code>null</code> or empty the version is
+	 *                      not changed
+	 */
+	public void setModuleVersion(String moduleVersion) {
+		this.moduleVersion = moduleVersion;
+	}
 }
