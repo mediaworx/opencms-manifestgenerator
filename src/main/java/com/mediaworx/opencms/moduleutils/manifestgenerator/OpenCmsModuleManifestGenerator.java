@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -272,7 +273,7 @@ public class OpenCmsModuleManifestGenerator {
 
 		// if a specific version is provided, replace the original version
 		if (StringUtils.isNotBlank(moduleVersion)) {
-			manifestString = manifestString.replaceFirst("<version>[^<]*</version>", "<version>" + moduleVersion + "</version>");
+			manifestString = manifestString.replaceFirst("<version>[^<]*</version>", "<version>" + Matcher.quoteReplacement(moduleVersion) + "</version>");
 		}
 
 		// write the manifest to the disk
