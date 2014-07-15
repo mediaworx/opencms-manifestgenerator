@@ -18,8 +18,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -189,6 +190,24 @@ public class OpenCmsModuleManifestGenerator {
 	/** Array of manifest nodes using CDATA sections */
 	private static final String[] CDATA_NODES = new String[] { "nicename", "description", "authorname", "authoremail" };
 
+	/** Variable used as placeholder for the structure UUID */
+	public static final String META_VAR_UUIDSTRUCTURE = "${uuidstructure}";
+
+	/** Variable used as placeholder for the resource UUID */
+	public static final String META_VAR_UUIDRESOURCE = "${uuidresource}";
+
+	/** Variable used as placeholder for the modification date */
+	public static final String META_VAR_DATELASTMODIFIED = "${datelastmodified}";
+
+	/** Variable used as placeholder for the creation date */
+	public static final String META_VAR_DATECREATED = "${datecreated}";
+
+	/** The date format to use for resource creation/modification dates, this is exactly like the date format used by OpenCms */
+	private static final DateFormat RESOURCE_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+	static {
+		RESOURCE_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+	}
+
 	/**
 	 * Set used to track resource Ids of resources with siblings (if a resource is referenced by multiple siblings,
 	 * only the first file entry pointing to that resource contains a source node)
@@ -201,9 +220,16 @@ public class OpenCmsModuleManifestGenerator {
 	private XmlHelper xmlHelper;
 
 	/**
-	 * module version to be used in the manifest, ignored if <code>null</code> or empty
+	 * Module version to be used in the manifest, ignored if <code>null</code> or empty
 	 */
 	private String moduleVersion;
+
+
+	/**
+	 * Flag indicating if meta variables (<code>${uuidstructure}</code>, <code>${uuidresource}</code>,
+	 * <code>${datelastmodified}</code> and <code>${datecreated}</code>) should be replaced with generated values.
+	 */
+	private boolean replaceMetaVariables = false;
 
 	/**
 	 * Generates the manifest.xml for OpenCms modules from meta files (manifest_stub.xml and separate meta files for all
@@ -286,6 +312,24 @@ public class OpenCmsModuleManifestGenerator {
 	}
 
 	/**
+	 * Generates a random UUID
+	 * @return a random UUID
+	 */
+	private static String generateUUID()  {
+		return UUID.randomUUID().toString();
+	}
+
+	/**
+	 * Creates a String from the date that can be used as a resource date in the manifest file
+	 * @param millisecondsSinceEpoch the milliseconds since January 1, 1970, 00:00:00 GMT.
+	 * @return  formatted date as String
+	 */
+	private static String formatDate(long millisecondsSinceEpoch) {
+		Date date = new Date(millisecondsSinceEpoch);
+		return RESOURCE_DATE_FORMAT.format(date);
+	}
+
+	/**
 	 * Adds the meta information for the given folder to the given files node.
 	 * @param filesNode the files node the folder meta data is to be added to
 	 * @param folder    the folder whose meta data is to be added
@@ -296,8 +340,15 @@ public class OpenCmsModuleManifestGenerator {
 		String metaXmlFilePath = folder.getPath() + FOLDER_META_SUFFIX;
 		LOG.debug("meta folder: {}", metaXmlFilePath);
 		try {
+			Map<String,String> replacements = null;
+			if (replaceMetaVariables) {
+				replacements = new HashMap<String, String>();
+				replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
+				replacements.put(META_VAR_DATELASTMODIFIED, formatDate(folder.lastModified()));
+				replacements.put(META_VAR_DATECREATED, formatDate(folder.lastModified()));
+			}
 			// append the whole content of the meta file as a child node to the files node
-			xmlHelper.appendFileAsNode(filesNode, metaXmlFilePath);
+			xmlHelper.appendFileAsNode(filesNode, metaXmlFilePath, replacements);
 		}
 		catch (IOException e) {
 			throw new OpenCmsMetaXmlParseException("The file " + metaXmlFilePath + " could not be read", e);
@@ -319,7 +370,7 @@ public class OpenCmsModuleManifestGenerator {
 		String metaXmlFilePath = metaFile.getPath();
 		LOG.debug("meta file:   {}", metaXmlFilePath);
 
-		Document fileMetaInfo = getFileMetaInfoFromXmlFile(metaXmlFilePath);
+		Document fileMetaInfo = getFileMetaInfoFromXmlFile(metaXmlFilePath, metaFile);
 		Node fileNode = getFileNodeFromMetaInfo(fileMetaInfo, metaXmlFilePath);
 		int numSiblings = getNumSiblingsForFile(fileMetaInfo, metaXmlFilePath);
 
@@ -342,15 +393,25 @@ public class OpenCmsModuleManifestGenerator {
 
 	/**
 	 * Retrieves the XML Document from the VFS file meta file at the given path.
-	 * @param metaXmlFilePath   path pointing to the VFS file meta file
+	 *
+	 * @param metaXmlFilePath path pointing to the VFS file meta file
+	 * @param metaFile the VFS file meta file
 	 * @return the XML Document contained in the meta file
 	 * @throws OpenCmsMetaXmlParseException if the VFS file meta file can not be read or parsed
 	 */
-	private Document getFileMetaInfoFromXmlFile(String metaXmlFilePath) throws OpenCmsMetaXmlParseException {
+	private Document getFileMetaInfoFromXmlFile(String metaXmlFilePath, File metaFile) throws OpenCmsMetaXmlParseException {
 		Document fileMetaInfo;
 
+		Map<String,String> replacements = null;
+		if (replaceMetaVariables) {
+			replacements = new HashMap<String, String>();
+			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
+			replacements.put(META_VAR_UUIDRESOURCE, generateUUID());
+			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(metaFile.lastModified()));
+			replacements.put(META_VAR_DATECREATED, formatDate(metaFile.lastModified()));
+		}
 		try {
-			fileMetaInfo = xmlHelper.parseFile(metaXmlFilePath);
+			fileMetaInfo = xmlHelper.parseFile(metaXmlFilePath, replacements);
 		}
 		catch (IOException e) {
 			throw new OpenCmsMetaXmlParseException("The file " + metaXmlFilePath + " could not be read", e);
@@ -479,5 +540,14 @@ public class OpenCmsModuleManifestGenerator {
 	 */
 	public void setModuleVersion(String moduleVersion) {
 		this.moduleVersion = moduleVersion;
+	}
+
+	/**
+	 * Sets the flag indicating if meta variables (<code>${uuidstructure}</code>, <code>${uuidresource}</code>,
+	 * <code>${datelastmodified}</code> and <code>${datecreated}</code>) should be replaced with generated values.
+	 * @param replaceMetaVariables <code>true</code> if meta variables should be replaced, <code>false</code> otherwise
+	 */
+	public void setReplaceMetaVariables(boolean replaceMetaVariables) {
+		this.replaceMetaVariables = replaceMetaVariables;
 	}
 }
