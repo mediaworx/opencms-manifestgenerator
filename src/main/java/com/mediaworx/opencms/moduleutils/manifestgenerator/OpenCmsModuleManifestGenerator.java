@@ -190,6 +190,12 @@ public class OpenCmsModuleManifestGenerator {
 	/** Array of manifest nodes using CDATA sections */
 	private static final String[] CDATA_NODES = new String[] { "nicename", "description", "authorname", "authoremail" };
 
+	/** Variable used as placeholder for the source path */
+	public static final String META_VAR_SOURCE = "${source}";
+
+	/** Variable used as placeholder for the destination path */
+	public static final String META_VAR_DESTINATION = "${destination}";
+
 	/** Variable used as placeholder for the structure UUID */
 	public static final String META_VAR_UUIDSTRUCTURE = "${uuidstructure}";
 
@@ -227,6 +233,11 @@ public class OpenCmsModuleManifestGenerator {
 	 */
 	private String moduleVersion;
 
+	/**
+	 * The root path under which the manifest stub and all the meta files are stored
+	 */
+	private String manifestRootPath;
+
 
 	/**
 	 * Flag indicating if meta variables (<code>${uuidstructure}</code>, <code>${uuidresource}</code>,
@@ -244,6 +255,8 @@ public class OpenCmsModuleManifestGenerator {
 	 * @throws OpenCmsMetaXmlFileWriteException if the resulting manifest file can not be written
 	 */
 	public void generateManifest(File manifestRoot) throws OpenCmsMetaXmlParseException, OpenCmsMetaXmlFileWriteException {
+
+		manifestRootPath = manifestRoot.getPath();
 
 		handledSiblingResourceIds = new HashSet<String>();
 
@@ -338,23 +351,40 @@ public class OpenCmsModuleManifestGenerator {
 	}
 
 	/**
+	 * Replaces System file separators with a forward slash ("/") that's needed for the VFS
+	 * @param path  the path containing system file separators
+	 * @return the path with file separators replaced by "/"
+	 */
+	private String fixVfsFileSeparator(String path) {
+		if (!File.separator.equals("/")) {
+			path = path.replaceAll(Pattern.quote(File.separator), "/");
+		}
+		return path;
+	}
+
+	/**
 	 * Adds the meta information for the given folder to the given files node.
 	 * @param filesNode the files node the folder meta data is to be added to
 	 * @param folder    the folder whose meta data is to be added
 	 * @throws OpenCmsMetaXmlParseException if the VFS folder meta file can not be read or parsed
 	 */
 	private void addFolderToFilesNode(Node filesNode, File folder) throws OpenCmsMetaXmlParseException {
-		LOG.debug("folder:   {}", folder.getPath());
+		LOG.debug("folder: {}", folder.getPath());
 		String metaXmlFilePath = folder.getPath() + FOLDER_META_SUFFIX;
 		LOG.debug("meta folder: {}", metaXmlFilePath);
+
+		String vfsPath = metaXmlFilePath.substring(manifestRootPath.length() + 1, metaXmlFilePath.length() - FOLDER_META_SUFFIX.length());
+		vfsPath = fixVfsFileSeparator(vfsPath);
+		Map<String,String> replacements = new HashMap<String, String>();
+		replacements.put(META_VAR_DESTINATION, vfsPath);
+
+		if (replaceMetaVariables) {
+			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
+			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(folder.lastModified()));
+			replacements.put(META_VAR_DATECREATED, formatDate(folder.lastModified()));
+		}
+
 		try {
-			Map<String,String> replacements = null;
-			if (replaceMetaVariables) {
-				replacements = new HashMap<String, String>();
-				replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
-				replacements.put(META_VAR_DATELASTMODIFIED, formatDate(folder.lastModified()));
-				replacements.put(META_VAR_DATECREATED, formatDate(folder.lastModified()));
-			}
 			// append the whole content of the meta file as a child node to the files node
 			xmlHelper.appendFileAsNode(filesNode, metaXmlFilePath, replacements);
 		}
@@ -410,9 +440,13 @@ public class OpenCmsModuleManifestGenerator {
 	private Document getFileMetaInfoFromXmlFile(String metaXmlFilePath, File metaFile) throws OpenCmsMetaXmlParseException {
 		Document fileMetaInfo;
 
-		Map<String,String> replacements = null;
+		String vfsPath = metaXmlFilePath.substring(manifestRootPath.length() + 1, metaXmlFilePath.length() - FILE_META_SUFFIX.length());
+		vfsPath = fixVfsFileSeparator(vfsPath);
+		Map<String,String> replacements = new HashMap<String, String>();
+		replacements.put(META_VAR_SOURCE, vfsPath);
+		replacements.put(META_VAR_DESTINATION, vfsPath);
+
 		if (replaceMetaVariables) {
-			replacements = new HashMap<String, String>();
 			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
 			replacements.put(META_VAR_UUIDRESOURCE, generateUUID());
 			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(metaFile.lastModified()));
