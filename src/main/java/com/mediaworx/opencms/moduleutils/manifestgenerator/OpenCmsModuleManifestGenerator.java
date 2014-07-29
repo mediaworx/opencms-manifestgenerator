@@ -74,8 +74,8 @@ import java.util.regex.Pattern;
  * <pre>
  * &lt;fileinfo&gt;
  *     &lt;file&gt;
- *         &lt;source&gt;system/modules/com.mediaworx.opencms.test/formatter/test.jsp&lt;/source&gt;
- *         &lt;destination&gt;system/modules/com.mediaworx.opencms.test/formatter/test.jsp&lt;/destination&gt;
+ *         &lt;source&gt;${source}&lt;/source&gt;
+ *         &lt;destination&gt;${destination}&lt;/destination&gt;
  *         &lt;type&gt;jsp&lt;/type&gt;
  *         &lt;uuidstructure&gt;c76b8773-7c44-11e3-92bb-210cc9a3bba6&lt;/uuidstructure&gt;
  *         &lt;uuidresource&gt;c76b8774-7c44-11e3-92bb-210cc9a3bba6&lt;/uuidresource&gt;
@@ -134,12 +134,39 @@ import java.util.regex.Pattern;
  * Sample meta file for VFS files (formatter.ocmsfolder.xml):
  * <pre>
  * &lt;file&gt;
- *     &lt;destination&gt;system/modules/com.mediaworx.opencms.test/formatter&lt;/destination&gt;
+ *     &lt;destination&gt;${destination}&lt;/destination&gt;
  *     &lt;type&gt;folder&lt;/type&gt;
  *     &lt;uuidstructure&gt;b9fb9670-7c44-11e3-92bb-210cc9a3bba6&lt;/uuidstructure&gt;
  *     &lt;datelastmodified&gt;Mon, 13 Jan 2014 11:20:43 GMT&lt;/datelastmodified&gt;
  *     &lt;userlastmodified&gt;Admin&lt;/userlastmodified&gt;
  *     &lt;datecreated&gt;Mon, 13 Jan 2014 11:20:37 GMT&lt;/datecreated&gt;
+ *     &lt;usercreated&gt;Admin&lt;/usercreated&gt;
+ *     &lt;flags&gt;0&lt;/flags&gt;
+ *     &lt;properties&gt;
+ *         &lt;property&gt;
+ *             &lt;name&gt;Title&lt;/name&gt;
+ *             &lt;value&gt;&lt;![CDATA[Test Formatters]]&gt;&lt;/value&gt;
+ *         &lt;/property&gt;
+ *     &lt;/properties&gt;
+ *     &lt;relations/&gt;
+ *     &lt;accesscontrol/&gt;
+ * &lt;/file&gt;
+ * </pre>
+ * <br />
+ * When putting meta files into version control, there may occur a lot of conflicts because of differing dates and
+ * UUIDs on local development machines. To avoid conflicts manifest data can be stored with variables instead of dates
+ * and UUIDs. The manifest generator replaces these variables with generated values when a manifest is created.
+ * <br />
+ * <br />
+ * Sample meta file for VFS files with variables instead of dates and UUIDs (formatter.ocmsfolder.xml):
+ * <pre>
+ * &lt;file&gt;
+ *     &lt;destination&gt;${destination}&lt;/destination&gt;
+ *     &lt;type&gt;folder&lt;/type&gt;
+ *     &lt;uuidstructure&gt;${uuidstructure}&lt;/uuidstructure&gt;
+ *     &lt;datelastmodified&gt;${datelastmodified}&lt;/datelastmodified&gt;
+ *     &lt;userlastmodified&gt;Admin&lt;/userlastmodified&gt;
+ *     &lt;datecreated&gt;${datecreated}&lt;/datecreated&gt;
  *     &lt;usercreated&gt;Admin&lt;/usercreated&gt;
  *     &lt;flags&gt;0&lt;/flags&gt;
  *     &lt;properties&gt;
