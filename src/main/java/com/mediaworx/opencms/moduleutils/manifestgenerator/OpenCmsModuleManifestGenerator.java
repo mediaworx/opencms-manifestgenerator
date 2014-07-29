@@ -196,11 +196,14 @@ public class OpenCmsModuleManifestGenerator {
 	/** Variable used as placeholder for the resource UUID */
 	public static final String META_VAR_UUIDRESOURCE = "${uuidresource}";
 
-	/** Variable used as placeholder for the modification date */
+	/** Variable used as placeholder for the resource modification date */
 	public static final String META_VAR_DATELASTMODIFIED = "${datelastmodified}";
 
-	/** Variable used as placeholder for the creation date */
+	/** Variable used as placeholder for the resource creation date */
 	public static final String META_VAR_DATECREATED = "${datecreated}";
+
+	/** Variable used as placeholder for the manifest's creation date */
+	public static final String META_VAR_CREATEDATE = "${createdate}";
 
 	/** The date format to use for resource creation/modification dates, this is exactly like the date format used by OpenCms */
 	private static final DateFormat RESOURCE_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
@@ -252,7 +255,12 @@ public class OpenCmsModuleManifestGenerator {
 		Document manifest;
 		try {
 			xmlHelper = new XmlHelper();
-			manifest = xmlHelper.parseFile(manifestStubPath);
+			Map<String,String> replacements = null;
+			if (replaceMetaVariables) {
+				replacements = new HashMap<String, String>();
+				replacements.put(META_VAR_CREATEDATE, formatDate((new Date()).getTime()));
+			}
+			manifest = xmlHelper.parseFile(manifestStubPath, replacements);
 			filesNode = xmlHelper.getSingleNodeForXPath(manifest, FILES_NODE_XPATH);
 		}
 		catch (ParserConfigurationException e) {

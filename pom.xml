@@ -6,7 +6,7 @@
 
 	<groupId>com.mediaworx.opencms</groupId>
 	<artifactId>opencms-manifestgenerator</artifactId>
-	<version>1.3</version>
+	<version>1.4</version>
 	<packaging>jar</packaging>
 
 	<name>OpenCms Module Manifest Generator</name>
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>com.mediaworx.opencms</groupId>
 			<artifactId>opencms-xmlutils</artifactId>
-			<version>1.1</version>
+			<version>1.2</version>
 		</dependency>
 	</dependencies>
 
