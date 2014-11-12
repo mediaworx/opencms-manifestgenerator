@@ -243,7 +243,7 @@ public class OpenCmsModuleManifestGenerator {
 	private static final String SOURCE_NODE_XPATH = "/fileinfo/file/source";
 
 	/** Array of manifest nodes using CDATA sections */
-	private static final String[] CDATA_NODES = new String[] { "nicename", "description", "authorname", "authoremail" };
+	private static final String[] CDATA_NODES = new String[] { "nicename", "description", "authorname", "authoremail", "value" };
 
 	/** Variable used as placeholder for the source path */
 	public static final String META_VAR_SOURCE = "${source}";
