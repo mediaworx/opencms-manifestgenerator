@@ -1,28 +1,28 @@
 /*
  * This file is part of the OpenCms Module Manifest Generator by mediaworx.
  *
- * For further information about the OpenCms Module Manifest Generator, 
- * please see the project website at GitHub: 
+ * For further information about the OpenCms Module Manifest Generator,
+ * please see the project website at GitHub:
  * https://github.com/mediaworx/opencms-manifestgenerator
  *
  * The OpenCms Module Manifest Generator is used by the OpenCms Plugin for
  * IntelliJ. For further information see the plugin's project site at GitHub:
  * https://github.com/mediaworx/opencms-intellijplugin
- *  
+ *
  * Copyright (C) 2012-2014 mediaworx berlin AG (http://www.mediaworx.com)
  *
- * This program is free software; you can redistribute it and/or modify it 
- * under the terms of the GNU General Public License as published by the 
- * Free Software Foundation; either version 3 of the License, or (at your 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your
  * option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  *
- * You should have received a copy of the GNU General Public License along 
- * with this program; if not, write to the Free Software Foundation, Inc., 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
@@ -301,6 +301,12 @@ public class OpenCmsModuleManifestGenerator {
 	private boolean replaceMetaVariables = false;
 
 	/**
+	 * Flag indicating if the <code>${datelastmodified}</code> meta variable should be set to "now" to force
+	 * compilation of new servlet classes from JSPs.
+	 */
+	private boolean touchAllFiles = false;
+
+	/**
 	 * Generates the manifest.xml for OpenCms modules from meta files (manifest_stub.xml and separate meta files for all
 	 * files and folders in the VFS).
 	 * @param manifestRoot  file representing the root folder of the manifest meta data (including manifest_stub.xml)
@@ -435,7 +441,7 @@ public class OpenCmsModuleManifestGenerator {
 
 		if (replaceMetaVariables) {
 			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
-			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(folder.lastModified()));
+			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(touchAllFiles ? new Date().getTime() : folder.lastModified()));
 			replacements.put(META_VAR_DATECREATED, formatDate(folder.lastModified()));
 		}
 
@@ -504,7 +510,7 @@ public class OpenCmsModuleManifestGenerator {
 		if (replaceMetaVariables) {
 			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
 			replacements.put(META_VAR_UUIDRESOURCE, generateUUID());
-			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(metaFile.lastModified()));
+			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(touchAllFiles ? new Date().getTime() : metaFile.lastModified()));
 			replacements.put(META_VAR_DATECREATED, formatDate(metaFile.lastModified()));
 		}
 		try {
@@ -646,5 +652,14 @@ public class OpenCmsModuleManifestGenerator {
 	 */
 	public void setReplaceMetaVariables(boolean replaceMetaVariables) {
 		this.replaceMetaVariables = replaceMetaVariables;
+	}
+
+	/**
+	 * Flag indicating if the <code>${datelastmodified}</code> meta variable should be set to "now" to force
+	 * compilation of new servlet classes from JSPs.
+	 * @param touchAllFiles <code>true</code> if all files and folders should be 'touched' (have their last-modified date set to 'now'), <code>false</code> otherwise
+	 */
+	public void setTouchAllFiles(boolean touchAllFiles) {
+		this.touchAllFiles = touchAllFiles;
 	}
 }
