@@ -295,10 +295,16 @@ public class OpenCmsModuleManifestGenerator {
 
 
 	/**
-	 * Flag indicating if meta variables (<code>${uuidstructure}</code>, <code>${uuidresource}</code>,
-	 * <code>${datelastmodified}</code> and <code>${datecreated}</code>) should be replaced with generated values.
+	 * Flag indicating if date variables (<code>${datelastmodified}</code> and <code>${datecreated}</code>) should be
+	 * replaced with generated values.
 	 */
-	private boolean replaceMetaVariables = false;
+	private boolean replaceDateVariables = false;
+
+	/**
+	 * Flag indicating if ID variables (<code>${uuidstructure}</code> and <code>${uuidresource}</code>) should be
+	 * replaced with generated values.
+	 */
+	private boolean replaceIdVariables = false;
 
 	/**
 	 * Generates the manifest.xml for OpenCms modules from meta files (manifest_stub.xml and separate meta files for all
@@ -324,7 +330,7 @@ public class OpenCmsModuleManifestGenerator {
 		try {
 			xmlHelper = new XmlHelper();
 			Map<String,String> replacements = null;
-			if (replaceMetaVariables) {
+			if (replaceDateVariables) {
 				replacements = new HashMap<String, String>();
 				replacements.put(META_VAR_CREATEDATE, formatDate((new Date()).getTime()));
 			}
@@ -433,10 +439,12 @@ public class OpenCmsModuleManifestGenerator {
 		Map<String,String> replacements = new HashMap<String, String>();
 		replacements.put(META_VAR_DESTINATION, vfsPath);
 
-		if (replaceMetaVariables) {
-			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
+		if (replaceDateVariables) {
 			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(folder.lastModified()));
 			replacements.put(META_VAR_DATECREATED, formatDate(folder.lastModified()));
+		}
+		if (replaceIdVariables) {
+			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
 		}
 
 		try {
@@ -501,11 +509,13 @@ public class OpenCmsModuleManifestGenerator {
 		replacements.put(META_VAR_SOURCE, vfsPath);
 		replacements.put(META_VAR_DESTINATION, vfsPath);
 
-		if (replaceMetaVariables) {
-			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
-			replacements.put(META_VAR_UUIDRESOURCE, generateUUID());
+		if (replaceDateVariables) {
 			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(metaFile.lastModified()));
 			replacements.put(META_VAR_DATECREATED, formatDate(metaFile.lastModified()));
+		}
+		if (replaceIdVariables) {
+			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
+			replacements.put(META_VAR_UUIDRESOURCE, generateUUID());
 		}
 		try {
 			fileMetaInfo = xmlHelper.parseFile(metaXmlFilePath, replacements);
@@ -640,11 +650,21 @@ public class OpenCmsModuleManifestGenerator {
 	}
 
 	/**
-	 * Sets the flag indicating if meta variables (<code>${uuidstructure}</code>, <code>${uuidresource}</code>,
-	 * <code>${datelastmodified}</code> and <code>${datecreated}</code>) should be replaced with generated values.
-	 * @param replaceMetaVariables <code>true</code> if meta variables should be replaced, <code>false</code> otherwise
+	 * Sets the flag indicating if date variables (<code>${datelastmodified}</code> and <code>${datecreated}</code>)
+	 * should be replaced with generated values.
+	 * @param replaceDateVariables <code>true</code> if date variables should be replaced, <code>false</code> otherwise
 	 */
-	public void setReplaceMetaVariables(boolean replaceMetaVariables) {
-		this.replaceMetaVariables = replaceMetaVariables;
+	public void setReplaceDateVariables(boolean replaceDateVariables) {
+		this.replaceDateVariables = replaceDateVariables;
+	}
+
+	/**
+	 * Sets the flag indicating if ID variables (<code>${uuidstructure}</code> and <code>${uuidresource}</code>)
+	 * should be replaced with generated values.
+	 *
+	 * @param replaceIdVariables <code>true</code> if ID variables should be replaced, <code>false</code> otherwise
+	 */
+	public void setReplaceIdVariables(boolean replaceIdVariables) {
+		this.replaceIdVariables = replaceIdVariables;
 	}
 }
