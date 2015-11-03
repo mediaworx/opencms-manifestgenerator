@@ -183,7 +183,8 @@ import java.util.regex.Pattern;
  * <br />
  * When putting meta files into version control, there may occur a lot of conflicts because of differing dates and
  * UUIDs on local development machines. To avoid conflicts manifest data can be stored with variables instead of dates
- * and UUIDs. The manifest generator replaces these variables with generated values when a manifest is created.
+ * and UUIDs. The manifest generator replaces these variables with generated values when a manifest is created. The
+ * replacement of meta variables can be triggered separately for dates and UUIDs
  * <br />
  * <br />
  * Sample meta file for VFS files with variables instead of dates and UUIDs (formatter.ocmsfolder.xml):
@@ -301,7 +302,7 @@ public class OpenCmsModuleManifestGenerator {
 	private boolean replaceDateVariables = false;
 
 	/**
-	 * Flag indicating if ID variables (<code>${uuidstructure}</code> and <code>${uuidresource}</code>) should be
+	 * Flag indicating if UUID variables (<code>${uuidstructure}</code> and <code>${uuidresource}</code>) should be
 	 * replaced with generated values.
 	 */
 	private boolean replaceIdVariables = false;
@@ -659,12 +660,25 @@ public class OpenCmsModuleManifestGenerator {
 	}
 
 	/**
-	 * Sets the flag indicating if ID variables (<code>${uuidstructure}</code> and <code>${uuidresource}</code>)
+	 * Sets the flag indicating if UUID variables (<code>${uuidstructure}</code> and <code>${uuidresource}</code>)
 	 * should be replaced with generated values.
 	 *
-	 * @param replaceIdVariables <code>true</code> if ID variables should be replaced, <code>false</code> otherwise
+	 * @param replaceIdVariables <code>true</code> if UUID variables should be replaced, <code>false</code> otherwise
 	 */
 	public void setReplaceIdVariables(boolean replaceIdVariables) {
 		this.replaceIdVariables = replaceIdVariables;
+	}
+
+	/**
+	 * Sets the flag indicating if meta variables (<code>${uuidstructure}</code>, <code>${uuidresource}</code>,
+	 * <code>${datelastmodified}</code> and <code>${datecreated}</code>) should be replaced with generated values.
+	 *
+	 * @param replaceMetaVariables <code>true</code> if meta variables should be replaced, <code>false</code> otherwise
+	 * @deprecated  Use {@link #setReplaceDateVariables(boolean)} and {@link #setReplaceIdVariables(boolean)} instead,
+	 *              may be removed in future versions.
+	 */
+	public void setReplaceMetaVariables(boolean replaceMetaVariables) {
+		this.replaceDateVariables = replaceMetaVariables;
+		this.replaceIdVariables = replaceMetaVariables;
 	}
 }
