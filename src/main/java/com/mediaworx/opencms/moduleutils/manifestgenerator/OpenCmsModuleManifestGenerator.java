@@ -294,6 +294,11 @@ public class OpenCmsModuleManifestGenerator {
 	 */
 	private String manifestRootPath;
 
+	/**
+	 * The root path under which the real (not meta) files are stored. Used to get the modification date, may be null
+	 * (if so the meta file's modification date is used)
+	 */
+	private String realFileRootPath;
 
 	/**
 	 * Flag indicating if date variables (<code>${datelastmodified}</code> and <code>${datecreated}</code>) should be
@@ -308,17 +313,37 @@ public class OpenCmsModuleManifestGenerator {
 	private boolean replaceIdVariables = false;
 
 	/**
+	 * Generates the manifest.xml for OpenCms modules from meta files (manifest_stub.xml and separate meta files for
+	 * all
+	 * files and folders in the VFS).
+	 *
+	 * @param manifestRoot file representing the root folder of the manifest meta data (including manifest_stub.xml)
+	 * @throws OpenCmsMetaXmlParseException     if the XmlHelper can not be initialized or the manifest stub file or
+	 *                                          any
+	 *                                          meta file can not be read or parsed
+	 * @throws OpenCmsMetaXmlFileWriteException if the resulting manifest file can not be written
+	 * @deprecated This method is deprecated and will be removed in a future release. Please use
+	 *             {@link #generateManifest(File, String)} instead.
+	 */
+	public void generateManifest(File manifestRoot) throws OpenCmsMetaXmlParseException, OpenCmsMetaXmlFileWriteException {
+		generateManifest(manifestRoot, null);
+	}
+
+	/**
 	 * Generates the manifest.xml for OpenCms modules from meta files (manifest_stub.xml and separate meta files for all
 	 * files and folders in the VFS).
 	 * @param manifestRoot  file representing the root folder of the manifest meta data (including manifest_stub.xml)
+	 * @param realFileRootPath  root path under which the real files (not the meta files) are stored. Used to get the
+	 *                          modification date, may be null (if so the meta file's modification date is used)
 	 *
 	 * @throws OpenCmsMetaXmlParseException     if the XmlHelper can not be initialized or the manifest stub file or any
 	 *                                          meta file can not be read or parsed
 	 * @throws OpenCmsMetaXmlFileWriteException if the resulting manifest file can not be written
 	 */
-	public void generateManifest(File manifestRoot) throws OpenCmsMetaXmlParseException, OpenCmsMetaXmlFileWriteException {
+	public void generateManifest(File manifestRoot, String realFileRootPath) throws OpenCmsMetaXmlParseException, OpenCmsMetaXmlFileWriteException {
 
 		manifestRootPath = manifestRoot.getPath();
+		this.realFileRootPath = realFileRootPath;
 
 		handledSiblingResourceIds = new HashSet<String>();
 
@@ -424,6 +449,27 @@ public class OpenCmsModuleManifestGenerator {
 		return path;
 	}
 
+	private String getFormattedDate(File file) {
+		long lastModified = 0;
+		if (realFileRootPath != null && realFileRootPath.length() > 0) {
+			String metaFilePath = file.getPath();
+			String realFilePath = metaFilePath.replace(manifestRootPath, realFileRootPath);
+			File realFile = new File(realFilePath);
+			if (realFile.exists()) {
+				lastModified = realFile.lastModified();
+			}
+			else {
+				LOG.warn(String.format("Error in file date detection: real file not found at %s, using the meta file's date", realFilePath));
+			}
+		}
+
+		// If no real file was found, use the meta file's date as fallback
+		if (lastModified == 0) {
+			lastModified = file.lastModified();
+		}
+		return formatDate(lastModified);
+	}
+
 	/**
 	 * Adds the meta information for the given folder to the given files node.
 	 * @param filesNode the files node the folder meta data is to be added to
@@ -441,8 +487,9 @@ public class OpenCmsModuleManifestGenerator {
 		replacements.put(META_VAR_DESTINATION, vfsPath);
 
 		if (replaceDateVariables) {
-			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(folder.lastModified()));
-			replacements.put(META_VAR_DATECREATED, formatDate(folder.lastModified()));
+			String formattedDate = getFormattedDate(folder);
+			replacements.put(META_VAR_DATELASTMODIFIED, formattedDate);
+			replacements.put(META_VAR_DATECREATED, formattedDate);
 		}
 		if (replaceIdVariables) {
 			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
@@ -511,8 +558,9 @@ public class OpenCmsModuleManifestGenerator {
 		replacements.put(META_VAR_DESTINATION, vfsPath);
 
 		if (replaceDateVariables) {
-			replacements.put(META_VAR_DATELASTMODIFIED, formatDate(metaFile.lastModified()));
-			replacements.put(META_VAR_DATECREATED, formatDate(metaFile.lastModified()));
+			String formattedDate = getFormattedDate(metaFile);
+			replacements.put(META_VAR_DATELASTMODIFIED, formattedDate);
+			replacements.put(META_VAR_DATECREATED, formattedDate);
 		}
 		if (replaceIdVariables) {
 			replacements.put(META_VAR_UUIDSTRUCTURE, generateUUID());
