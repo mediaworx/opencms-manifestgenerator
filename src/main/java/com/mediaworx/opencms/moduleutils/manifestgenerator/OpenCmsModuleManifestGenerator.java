@@ -181,10 +181,11 @@ import java.util.regex.Pattern;
  * &lt;/file&gt;
  * </pre>
  * <br />
- * When putting meta files into version control, there may occur a lot of conflicts because of differing dates and
- * UUIDs on local development machines. To avoid conflicts manifest data can be stored with variables instead of dates
- * and UUIDs. The manifest generator replaces these variables with generated values when a manifest is created. The
- * replacement of meta variables can be triggered separately for dates and UUIDs
+ * When putting meta files into version control, there may occur a lot of conflicts because of differing dates (and
+ * UUIDs) on local development machines. To avoid conflicts manifest data can be stored with variables instead of dates
+ * (and UUIDs). The manifest generator replaces these variables with generated values when a manifest is created. The
+ * replacement of meta variables can be triggered separately for dates and UUIDs. We don't recommend storing UUIDs as
+ * meta variables
  * <br />
  * <br />
  * Sample meta file for VFS files with variables instead of dates and UUIDs (formatter.ocmsfolder.xml):
@@ -210,7 +211,9 @@ import java.util.regex.Pattern;
  * </pre>
  * <br />
  * mediaworx provides an OpenCms module for pulling the meta files from OpenCms
- * (com.mediaworx.opencms.intellijconnector).
+ * (com.mediaworx.opencms.intellijconnector).<br />
+ * <br />
+ * Revision 1.7
  */
 public class OpenCmsModuleManifestGenerator {
 
