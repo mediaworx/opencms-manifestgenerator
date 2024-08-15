@@ -554,7 +554,14 @@ public class OpenCmsModuleManifestGenerator {
 	private Document getFileMetaInfoFromXmlFile(String metaXmlFilePath, File metaFile) throws OpenCmsMetaXmlParseException {
 		Document fileMetaInfo;
 
-		String vfsPath = metaXmlFilePath.substring(manifestRootPath.length() + 1, metaXmlFilePath.length() - FILE_META_SUFFIX.length());
+		String vfsPath;
+		try {
+			vfsPath = metaXmlFilePath.substring(manifestRootPath.length() + 1, metaXmlFilePath.length() - FILE_META_SUFFIX.length());
+		}
+		catch (StringIndexOutOfBoundsException e) {
+			LOG.error("Error getting vfs path for meta file " + metaXmlFilePath, e);
+			return null;
+		}
 		vfsPath = fixVfsFileSeparator(vfsPath);
 		Map<String,String> replacements = new HashMap<String, String>();
 		replacements.put(META_VAR_SOURCE, vfsPath);
