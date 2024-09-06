@@ -316,6 +316,14 @@ public class OpenCmsModuleManifestGenerator {
 	private boolean replaceIdVariables = false;
 
 	/**
+	 * Creates a new manifest generator that can be used to generate the manifest.xml file for OpenCms modules, for
+	 * details see {@link OpenCmsModuleManifestGenerator}
+	 * @see OpenCmsModuleManifestGenerator
+	 */
+	public OpenCmsModuleManifestGenerator() {
+	}
+
+	/**
 	 * Generates the manifest.xml for OpenCms modules from meta files (manifest_stub.xml and separate meta files for
 	 * all
 	 * files and folders in the VFS).
@@ -328,6 +336,7 @@ public class OpenCmsModuleManifestGenerator {
 	 * @deprecated This method is deprecated and will be removed in a future release. Please use
 	 *             {@link #generateManifest(File, String)} instead.
 	 */
+	@Deprecated
 	public void generateManifest(File manifestRoot) throws OpenCmsMetaXmlParseException, OpenCmsMetaXmlFileWriteException {
 		generateManifest(manifestRoot, null);
 	}
@@ -386,22 +395,26 @@ public class OpenCmsModuleManifestGenerator {
 		IOFileFilter excludeFolderMetaFilter = new RegexFileFilter(excludeFolderMetaRegex);
 
 		// read all files and folders excluding VFS folder meta files
-		Collection<File> files = FileUtils.listFilesAndDirs(manifestRoot, excludeFolderMetaFilter, TrueFileFilter.INSTANCE);
+		Collection<File> filesAndDirs = FileUtils.listFilesAndDirs(manifestRoot, excludeFolderMetaFilter, TrueFileFilter.INSTANCE);
 
-		for (File file : files) {
-			if (file.isDirectory()) {
+		// Sort files and directories alphabetically
+        List<File> sortedFilesAndDirs = new ArrayList<>(filesAndDirs);
+        sortedFilesAndDirs.sort(Comparator.comparing(File::getAbsolutePath));
+
+		for (File fileOrDir : sortedFilesAndDirs) {
+			if (fileOrDir.isDirectory()) {
 				// exclude the manifest root
-				if (file.getPath().equals(manifestRoot.getPath())) {
+				if (fileOrDir.getPath().equals(manifestRoot.getPath())) {
 					continue;
 				}
-				addFolderToFilesNode(filesNode, file);
+				addFolderToFilesNode(filesNode, fileOrDir);
 			}
 			else {
 				// exclude the manifest stub file and the manifest file
-				if (file.getPath().equals(manifestPath) || file.getPath().equals(manifestStubPath)) {
+				if (fileOrDir.getPath().equals(manifestPath) || fileOrDir.getPath().equals(manifestStubPath)) {
 					continue;
 				}
-				addFileToFilesNode(filesNode, file);
+				addFileToFilesNode(filesNode, fileOrDir);
 			}
 		}
 
@@ -735,6 +748,7 @@ public class OpenCmsModuleManifestGenerator {
 	 * @deprecated  Use {@link #setReplaceDateVariables(boolean)} and {@link #setReplaceIdVariables(boolean)} instead,
 	 *              may be removed in future versions.
 	 */
+	@Deprecated
 	public void setReplaceMetaVariables(boolean replaceMetaVariables) {
 		this.replaceDateVariables = replaceMetaVariables;
 		this.replaceIdVariables = replaceMetaVariables;
